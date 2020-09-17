@@ -6,37 +6,15 @@ using Unity.MLAgents.Sensors;
 
 public class DynaGameBoard : MonoBehaviour
 {
-    public int BoardWidth = 9;
-    public int BoardHeight = 6;
     public DynaCell Cell;
 
     List<DynaCell> _cells;
 
-    public int BestScoreTeamId1;
-    public int BestScoreTeamId2;
-
-    // public List<Tuple<int,int>> dfddf = new {
-    //     new Tuple{2, 1},
-    //     new Tuple{2, 2},
-    // };
-    public List<Vector2Int> InitialRockPositions = new List<Vector2Int>{
-        new Vector2Int(2,1),
-        new Vector2Int(2,2),
-        new Vector2Int(2,3),
-        new Vector2Int(7,0),
-        new Vector2Int(7,1),
-        new Vector2Int(7,2),
-        new Vector2Int(5,4),
-    };
-    public Vector2Int InitialHeroPosition = new Vector2Int(0,2);
-    public Vector2Int InitialGoalPosition = new Vector2Int(8,0);
 
     bool _hasInitializedBoard;
-    int _nextPlayerId;
     // Start is called before the first frame update
     void Start()
     {
-        InitializeBoard();
     }
 
     // Update is called once per frame
@@ -45,7 +23,7 @@ public class DynaGameBoard : MonoBehaviour
         
     }
     
-    public void InitializeBoard()
+    public void InitializeBoard(Environment _env)
     {
         if (_hasInitializedBoard)
         {
@@ -53,18 +31,18 @@ public class DynaGameBoard : MonoBehaviour
             return;
         }
         this.transform.localScale = new Vector3(
-            BoardWidth,
+            _env.BoardWidth,
             this.transform.localScale.y,
-            BoardHeight
+            _env.BoardHeight
         );
         _cells = new List<DynaCell>();
         Vector3 position = this.transform.position;
-        position.x -= ((float)BoardWidth-1) / 2f;
+        position.x -= ((float)_env.BoardWidth-1) / 2f;
         position.y = 0f;
-        position.z += ((float)BoardHeight-1) / 2f;
-        for (int row = 0; row < BoardHeight; row++)
+        position.z += ((float)_env.BoardHeight-1) / 2f;
+        for (int row = 0; row < _env.BoardHeight; row++)
         {
-            for (int column = 0; column < BoardWidth; column++)
+            for (int column = 0; column < _env.BoardWidth; column++)
             {
                 var cell = GameObject.Instantiate(Cell, position, this.transform.rotation);
                 cell.transform.parent = this.transform;
@@ -74,32 +52,40 @@ public class DynaGameBoard : MonoBehaviour
                 // cell.Row = row;
                 // cell.Column = column;
             }
-            position.x -= (float)BoardWidth;
+            position.x -= (float)_env.BoardWidth;
             position.z -= 1f;
         }
-        ResetBoard();
+        RenderBoard(_env);
         _hasInitializedBoard = true;
     }
-    public void ResetBoard()
+    public void RenderBoard(Environment _env)
     {
-        foreach (var cells in _cells)
+        for (int idx = 0; idx < _cells.Count; idx++)
         {
-            cells.State = 0;
+            _cells[idx].State = 0;
+            if (_env.States[idx].IsRock)
+            {
+                _cells[idx].State = 1;
+            }
+            else if (_env.States[idx].IsGoal)
+            {
+                _cells[idx].State = 2;
+            }
+            else if (_env.States[idx].IsHero)
+            {
+                _cells[idx].State = 3;
+            }
         }
-        int idx;
-        foreach (var rock in InitialRockPositions)
-        {
-            idx = rock.y * BoardWidth + rock.x;
-            _cells[idx].State = 1;
-        }
-        idx = InitialHeroPosition.y * BoardWidth + InitialHeroPosition.x;
-        _cells[idx].State = 3;
-        idx = InitialGoalPosition.y * BoardWidth + InitialGoalPosition.x;
-        _cells[idx].State = 2;
-
-        _nextPlayerId = 1;
-        BestScoreTeamId1=0;
-        BestScoreTeamId2=0;
+        // int idx;
+        // foreach (var rock in InitialRockPositions)
+        // {
+        //     idx = rock.y * BoardWidth + rock.x;
+        //     _cells[idx].State = 1;
+        // }
+        // idx = InitialHeroPosition.y * _env.BoardWidth + InitialHeroPosition.x;
+        // _cells[idx].State = 3;
+        // idx = InitialGoalPosition.y * _env.BoardWidth + InitialGoalPosition.x;
+        // _cells[idx].State = 2;
     }
 
     public void CollectObservationsForPlayer(VectorSensor sensor, int playerId)
@@ -245,6 +231,6 @@ public class DynaGameBoard : MonoBehaviour
         // TODO if human, return false
         if (HasEnded())
             return false;
-        return _nextPlayerId == playerId;
+        return true;
     }
 }
