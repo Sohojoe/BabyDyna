@@ -42,7 +42,7 @@ public class DyanSimpleAgent : Agent
 
     
     [Header("State")]
-    public List<Vector4> Q;
+    public Dictionary<int, Dictionary<int, float>> Q;
     public Dictionary<int, Dictionary<int, (float, int)>> Model;
     public float TotalReward;
     public int EpisodeNum;
@@ -79,26 +79,16 @@ public class DyanSimpleAgent : Agent
             InitialGoalPosition
         );
 
-        Q = new List<Vector4>();
+        Q = new Dictionary<int, Dictionary<int, float>>();
         Model = new Dictionary<int, Dictionary<int, (float, int)>>();
         foreach (var item in _env.States)
         {
-            // var q = Enumerable.Range(0,4).Select(x=>UnityEngine.Random.value).ToList();
-            // var m = Enumerable.Range(0,4).Select(x=>UnityEngine.Random.value).ToList();
-            var q = new Vector4(
-                UnityEngine.Random.value,
-                UnityEngine.Random.value,
-                UnityEngine.Random.value,
-                UnityEngine.Random.value);
-            // var m = new Vector4(
-            //     UnityEngine.Random.value,
-            //     UnityEngine.Random.value,
-            //     UnityEngine.Random.value,
-            //     UnityEngine.Random.value);
-            Q.Add(q);
-            // Model.Add(m);
+            Q[item.Id] = new Dictionary<int, float>();
+            Q[item.Id][0] = UnityEngine.Random.value;
+            Q[item.Id][1] = UnityEngine.Random.value;
+            Q[item.Id][2] = UnityEngine.Random.value;
+            Q[item.Id][3] = UnityEngine.Random.value;
             Model[item.Id] = new Dictionary<int, (float, int)>();
-
         }
 
         _gameBoard.InitializeBoard(_env);
@@ -159,8 +149,8 @@ public class DyanSimpleAgent : Agent
         _gameBoard.RenderBoard(_env);
         TotalReward += r;
         //     self.Q[p_s][a] += alpha * (r + (gamma * np.max(self.Q[s])) - self.Q[p_s][a])
-        float delta = Alpha * (r + (Gamma * Max(Q[s])) - GetIndex(Q[priorState], a));
-        Q[priorState] = AddToIndex(Q[priorState], a, delta);
+        float delta = Alpha * (r + (Gamma * Max(Q[s])) - Q[priorState][a]);
+        Q[priorState][a] += delta;
         //     self.model[p_s][a] = (r, s)
         if (!Model.ContainsKey(priorState))
         {
@@ -196,53 +186,53 @@ public class DyanSimpleAgent : Agent
             var a1Idx = Random.Range(0, ActionMemory[s1].Count);
             int a1 = ActionMemory[s1][a1Idx];
             (var r1, var s_p1) = Model[s1][a1];
-            delta = Alpha * (r1 + (Gamma * Max(Q[s_p1])) - GetIndex(Q[s1], a1));
-            Q[s1] = AddToIndex(Q[s1], a1, delta);
+            delta = Alpha * (r1 + (Gamma * Max(Q[s_p1])) - Q[s1][a1]);
+            Q[s1][a1] += delta;
         }
     }
-    float GetIndex(Vector4 vector4, int idx)
-    {
-        switch (idx)
-        {
-            case 0:
-                return vector4.x;
-            case 1:
-                return vector4.y;
-            case 2:
-                return vector4.z;
-            case 3:
-                return vector4.w;
-            default:
-                throw new System.ArgumentException();
-        }
-    }
-    Vector4 SetIndex(Vector4 vector4, int idx, float value)
-    {
-        switch (idx)
-        {
-            case 0:
-                vector4.x = value;
-                break;
-            case 1:
-                vector4.y = value;
-                break;
-            case 2:
-                vector4.z = value;
-                break;
-            case 3:
-                vector4.w = value;
-                break;
-            default:
-                throw new System.ArgumentException();
-        }
-        return vector4;
-    }
-    Vector4 AddToIndex(Vector4 vector4, int idx, float delta)
-    {
-        float curValue = GetIndex(vector4, idx);
-        float value = curValue + delta;
-        return SetIndex(vector4, idx, value);
-    }
+    // float GetIndex(Vector4 vector4, int idx)
+    // {
+    //     switch (idx)
+    //     {
+    //         case 0:
+    //             return vector4.x;
+    //         case 1:
+    //             return vector4.y;
+    //         case 2:
+    //             return vector4.z;
+    //         case 3:
+    //             return vector4.w;
+    //         default:
+    //             throw new System.ArgumentException();
+    //     }
+    // }
+    // Vector4 SetIndex(Vector4 vector4, int idx, float value)
+    // {
+    //     switch (idx)
+    //     {
+    //         case 0:
+    //             vector4.x = value;
+    //             break;
+    //         case 1:
+    //             vector4.y = value;
+    //             break;
+    //         case 2:
+    //             vector4.z = value;
+    //             break;
+    //         case 3:
+    //             vector4.w = value;
+    //             break;
+    //         default:
+    //             throw new System.ArgumentException();
+    //     }
+    //     return vector4;
+    // }
+    // Vector4 AddToIndex(Vector4 vector4, int idx, float delta)
+    // {
+    //     float curValue = GetIndex(vector4, idx);
+    //     float value = curValue + delta;
+    //     return SetIndex(vector4, idx, value);
+    // }
     int SampleAction(int state)
     {
         if (Random.value < 0.1f)
@@ -255,68 +245,78 @@ public class DyanSimpleAgent : Agent
         return Argmax(qValues);
     }
 
-    int Argmax(Vector4 value)
+    int Argmax(Dictionary<int, float> values)
     {
-        var indexs = new List<int>{0};
-        var max = value.x;
-        // 1
-        if (value.y == max)
-            indexs.Add(1);
-        else if (value.y > max)
+        var indexs = new List<int>{};
+        float max = float.MinValue;
+        foreach (var item in values)
         {
-            indexs = new List<int>{1};
-            max = value.y;
-        }
-        // 2
-        if (value.z == max)
-            indexs.Add(2);
-        else if (value.z > max)
-        {
-            indexs = new List<int>{2};
-            max = value.z;
-        }
-        // 3
-        if (value.w == max)
-            indexs.Add(3);
-        else if (value.w > max)
-        {
-            indexs = new List<int>{3};
-            max = value.w;
+            if (Mathf.Approximately(max, item.Value))
+            {
+                indexs.Add(item.Key);
+            }
+            else if (item.Value > max)
+            {
+                max = item.Value;
+                indexs = new List<int>{item.Key};
+            }
         }
         var idx = Random.Range (0, indexs.Count);
         return indexs[idx];
-    }
-    float Max(Vector4 vector4)
+    }    
+    float Max(Dictionary<int, float> values)
     {
-        // if (
-        //     vector4.x >= vector4.y && 
-        //     vector4.x >= vector4.z && 
-        //     vector4.x >= vector4.w)
-        //     return vector4.x;
-        // if (
-        //     vector4.y >= vector4.x && 
-        //     vector4.y >= vector4.z && 
-        //     vector4.y >= vector4.w)
-        //     return vector4.y;
-        // if (
-        //     vector4.z >= vector4.x && 
-        //     vector4.z >= vector4.y && 
-        //     vector4.z >= vector4.w)
-        //     return vector4.z;
-        // return vector4.w;
-        int idx = Argmax(vector4);
-        switch (idx)
-        {
-            case 0:
-                return vector4.x;
-            case 1:
-                return vector4.y;
-            case 2:
-                return vector4.z;
-            case 3:
-                return vector4.w;
-            default:
-                throw new System.ArgumentException();
-        }
+        int idx = Argmax(values);
+        return values[idx];
     }
+
+
+    // int Argmax(Vector4 value)
+    // {
+    //     var indexs = new List<int>{0};
+    //     var max = value.x;
+    //     // 1
+    //     if (value.y == max)
+    //         indexs.Add(1);
+    //     else if (value.y > max)
+    //     {
+    //         indexs = new List<int>{1};
+    //         max = value.y;
+    //     }
+    //     // 2
+    //     if (value.z == max)
+    //         indexs.Add(2);
+    //     else if (value.z > max)
+    //     {
+    //         indexs = new List<int>{2};
+    //         max = value.z;
+    //     }
+    //     // 3
+    //     if (value.w == max)
+    //         indexs.Add(3);
+    //     else if (value.w > max)
+    //     {
+    //         indexs = new List<int>{3};
+    //         max = value.w;
+    //     }
+    //     var idx = Random.Range (0, indexs.Count);
+    //     return indexs[idx];
+    // }
+    // float Max(Vector4 vector4)
+    // {
+    //     int idx = Argmax(vector4);
+    //     switch (idx)
+    //     {
+    //         case 0:
+    //             return vector4.x;
+    //         case 1:
+    //             return vector4.y;
+    //         case 2:
+    //             return vector4.z;
+    //         case 3:
+    //             return vector4.w;
+    //         default:
+    //             throw new System.ArgumentException();
+    //     }
+    // }
 }
