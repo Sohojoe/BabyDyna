@@ -32,6 +32,14 @@ public class Environment
     Vector2Int _initialHeroPosition;
     Vector2Int _initialGoalPosition;
 
+    public enum Actions
+    {
+        Left = 0,
+        Up,
+        Right,
+        Down
+    }
+
     public Environment(
         int width, 
         int height, 
@@ -83,27 +91,31 @@ public class Environment
     public (Vector2Int, float, bool) Step(int action)
     {
         Vector2Int targetPos = PlayerPos;
-        switch (action)
+        switch ((Environment.Actions)action)
         {
-            case 1: // Up
+            // case 1: // Up
+            case Environment.Actions.Up:
                 if (States[PlayerIdx].Position.y > 0)
                     targetPos.y -= 1;
                     TryMovePlayer(targetPos);
                     CheckDone();
                 break;
-            case 0: // Left
+            // case 0: // Left
+            case Environment.Actions.Left:
                 if (States[PlayerIdx].Position.x > 0)
                     targetPos.x -= 1;
                     TryMovePlayer(targetPos);
                     CheckDone();
                 break;
-            case 2: // Right
+            // case 2: // Right
+            case Environment.Actions.Right:
                if (States[PlayerIdx].Position.y < BoardHeight-1)
                     targetPos.y += 1;
                     TryMovePlayer(targetPos);
                     CheckDone();
                 break;
-             case 3: // Down
+            //  case 3: // Down
+            case Environment.Actions.Down:
                if (States[PlayerIdx].Position.x < BoardWidth-1)
                     targetPos.x += 1;
                     TryMovePlayer(targetPos);

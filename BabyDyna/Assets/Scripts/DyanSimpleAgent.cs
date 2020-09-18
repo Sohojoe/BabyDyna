@@ -84,11 +84,15 @@ public class DyanSimpleAgent : Agent
         foreach (var item in _env.States)
         {
             Q[item.Position] = new Dictionary<int, float>();
-            Q[item.Position][0] = UnityEngine.Random.value;
-            Q[item.Position][1] = UnityEngine.Random.value;
-            Q[item.Position][2] = UnityEngine.Random.value;
-            Q[item.Position][3] = UnityEngine.Random.value;
+            Q[item.Position][0] = UnityEngine.Random.value * -.01f;
+            Q[item.Position][1] = UnityEngine.Random.value * -.01f;
+            Q[item.Position][2] = UnityEngine.Random.value * -.01f;
+            Q[item.Position][3] = UnityEngine.Random.value * -.01f;
             Model[item.Position] = new Dictionary<int, (float, Vector2Int)>();
+            Model[item.Position][(int)Environment.Actions.Up] = (0f, item.Position);
+            Model[item.Position][(int)Environment.Actions.Down] = (0f, item.Position);
+            Model[item.Position][(int)Environment.Actions.Left] = (0f, item.Position);
+            Model[item.Position][(int)Environment.Actions.Right] = (0f, item.Position);
         }
 
         _gameBoard.InitializeBoard(_env);
@@ -189,6 +193,8 @@ public class DyanSimpleAgent : Agent
             delta = Alpha * (r1 + (Gamma * Max(Q[s_p1])) - Q[s1][a1]);
             Q[s1][a1] += delta;
         }
+        _gameBoard.RenderModel(Model);
+        _gameBoard.RenderQ(Q);
     }
 
     int SampleAction(Vector2Int state)

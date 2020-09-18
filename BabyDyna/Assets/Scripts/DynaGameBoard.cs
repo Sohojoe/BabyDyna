@@ -56,6 +56,8 @@ public class DynaGameBoard : MonoBehaviour
             position.z -= 1f;
         }
         RenderBoard(_env);
+        RenderModel();
+        RenderQ();
         _hasInitializedBoard = true;
     }
     public void RenderBoard(Environment _env)
@@ -63,6 +65,7 @@ public class DynaGameBoard : MonoBehaviour
         for (int idx = 0; idx < _cells.Count; idx++)
         {
             _cells[idx].State = 0;
+            _cells[idx].Position = _env.States[idx].Position;
             if (_env.States[idx].IsRock)
             {
                 _cells[idx].State = 1;
@@ -76,16 +79,48 @@ public class DynaGameBoard : MonoBehaviour
                 _cells[idx].State = 3;
             }
         }
-        // int idx;
-        // foreach (var rock in InitialRockPositions)
-        // {
-        //     idx = rock.y * BoardWidth + rock.x;
-        //     _cells[idx].State = 1;
-        // }
-        // idx = InitialHeroPosition.y * _env.BoardWidth + InitialHeroPosition.x;
-        // _cells[idx].State = 3;
-        // idx = InitialGoalPosition.y * _env.BoardWidth + InitialGoalPosition.x;
-        // _cells[idx].State = 2;
+    }
+    public void RenderModel(Dictionary<Vector2Int, Dictionary<int, (float, Vector2Int)>> model = null)
+    {
+        for (int idx = 0; idx < _cells.Count; idx++)
+        {
+            var position = _cells[idx].Position;
+            if (model == null)
+            {
+                _cells[idx].ModelUp = 0f;
+                _cells[idx].ModelDown = 0f;
+                _cells[idx].ModelLeft = 0f;
+                _cells[idx].ModelRight = 0f;
+            }
+            else
+            {
+                _cells[idx].ModelUp = model[position][(int)Environment.Actions.Up].Item1;
+                _cells[idx].ModelDown = model[position][(int)Environment.Actions.Down].Item1;
+                _cells[idx].ModelLeft = model[position][(int)Environment.Actions.Left].Item1;
+                _cells[idx].ModelRight = model[position][(int)Environment.Actions.Right].Item1;
+            }
+        }        
+    }
+    public void RenderQ(Dictionary<Vector2Int, Dictionary<int, float>> q = null)
+    {
+        for (int idx = 0; idx < _cells.Count; idx++)
+        {
+            var position = _cells[idx].Position;
+            if (q == null)
+            {
+                _cells[idx].QUp = 0f;
+                _cells[idx].QDown = 0f;
+                _cells[idx].QLeft = 0f;
+                _cells[idx].QRight = 0f;
+            }
+            else
+            {
+                _cells[idx].QUp = q[position][(int)Environment.Actions.Up];
+                _cells[idx].QDown = q[position][(int)Environment.Actions.Down];
+                _cells[idx].QLeft = q[position][(int)Environment.Actions.Left];
+                _cells[idx].QRight = q[position][(int)Environment.Actions.Right];
+            }
+        }        
     }
 
     public void CollectObservationsForPlayer(VectorSensor sensor, int playerId)

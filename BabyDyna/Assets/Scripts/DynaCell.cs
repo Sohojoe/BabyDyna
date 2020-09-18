@@ -16,6 +16,17 @@ public class DynaCell : MonoBehaviour
     [Tooltip("State of this cell (Text)")]
     public string StateText;
 
+    public Vector2Int Position;
+    public float ModelUp;
+    public float ModelRight;
+    public float ModelDown;
+    public float ModelLeft;
+    public float QUp;
+    public float QRight;
+    public float QDown;
+    public float QLeft;
+
+
     // Start is called before the first frame update
     void Start()
     {
