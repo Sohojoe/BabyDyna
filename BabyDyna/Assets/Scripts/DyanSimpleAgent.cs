@@ -141,12 +141,18 @@ public class DyanSimpleAgent : Agent
         var s = _env.PlayerPos;
         var a = SampleAction(s);
         var priorState = s;
-        StateMemory.Add(s);
+        if (!StateMemory.Contains(s))
+        {
+            StateMemory.Add(s);
+        }
         if (!ActionMemory.ContainsKey(s))
         {
             ActionMemory[s] = new List<int>();
         }
-        ActionMemory[s].Add(a);
+        if (!ActionMemory[s].Contains(a))
+        {
+            ActionMemory[s].Add(a);
+        }
         float r;
         bool done;
         (s, r, done) = _env.Step(a);
