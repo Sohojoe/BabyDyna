@@ -46,7 +46,7 @@ public class Environment
         _initialGoalPosition = initialGoalPosition;
         Reset();
     }
-    public int Reset()
+    public Vector2Int Reset()
     {
         IsDone = false;
         States = new List<State>();
@@ -78,9 +78,9 @@ public class Environment
             }                
         }
         PlayerIdx = States.First(x=>x.IsHero).Id;
-        return PlayerIdx;
+        return PlayerPos;
     }
-    public (int, float, bool) Step(int action)
+    public (Vector2Int, float, bool) Step(int action)
     {
         Vector2Int targetPos = PlayerPos;
         switch (action)
@@ -112,7 +112,7 @@ public class Environment
             default:
                 throw new System.NotImplementedException();
         }
-        return (PlayerIdx, States[PlayerIdx].Reward, IsDone);
+        return (PlayerPos, States[PlayerIdx].Reward, IsDone);
     }
     void CheckDone()
     {

@@ -42,13 +42,13 @@ public class DyanSimpleAgent : Agent
 
     
     [Header("State")]
-    public Dictionary<int, Dictionary<int, float>> Q;
-    public Dictionary<int, Dictionary<int, (float, int)>> Model;
+    public Dictionary<Vector2Int, Dictionary<int, float>> Q;
+    public Dictionary<Vector2Int, Dictionary<int, (float, Vector2Int)>> Model;
     public float TotalReward;
     public int EpisodeNum;
     public List<float> RunningAverage;
-    public List<int> StateMemory;
-    public Dictionary<int, List<int>> ActionMemory;
+    public List<Vector2Int> StateMemory;
+    public Dictionary<Vector2Int, List<int>> ActionMemory;
     
 
     void FixedUpdate()
@@ -79,24 +79,24 @@ public class DyanSimpleAgent : Agent
             InitialGoalPosition
         );
 
-        Q = new Dictionary<int, Dictionary<int, float>>();
-        Model = new Dictionary<int, Dictionary<int, (float, int)>>();
+        Q = new Dictionary<Vector2Int, Dictionary<int, float>>();
+        Model = new Dictionary<Vector2Int, Dictionary<int, (float, Vector2Int)>>();
         foreach (var item in _env.States)
         {
-            Q[item.Id] = new Dictionary<int, float>();
-            Q[item.Id][0] = UnityEngine.Random.value;
-            Q[item.Id][1] = UnityEngine.Random.value;
-            Q[item.Id][2] = UnityEngine.Random.value;
-            Q[item.Id][3] = UnityEngine.Random.value;
-            Model[item.Id] = new Dictionary<int, (float, int)>();
+            Q[item.Position] = new Dictionary<int, float>();
+            Q[item.Position][0] = UnityEngine.Random.value;
+            Q[item.Position][1] = UnityEngine.Random.value;
+            Q[item.Position][2] = UnityEngine.Random.value;
+            Q[item.Position][3] = UnityEngine.Random.value;
+            Model[item.Position] = new Dictionary<int, (float, Vector2Int)>();
         }
 
         _gameBoard.InitializeBoard(_env);
         TotalReward = 0;
         EpisodeNum = 0;
         RunningAverage = new List<float>();
-        StateMemory = new List<int>();
-        ActionMemory = new Dictionary<int, List<int>>();
+        StateMemory = new List<Vector2Int>();
+        ActionMemory = new Dictionary<Vector2Int, List<int>>();
     }
 
     override public void CollectObservations(VectorSensor sensor)
@@ -134,7 +134,7 @@ public class DyanSimpleAgent : Agent
 
     void TakeStep()
     {
-        var s = _env.PlayerIdx;
+        var s = _env.PlayerPos;
         var a = SampleAction(s);
         var priorState = s;
         StateMemory.Add(s);
@@ -154,7 +154,7 @@ public class DyanSimpleAgent : Agent
         //     self.model[p_s][a] = (r, s)
         if (!Model.ContainsKey(priorState))
         {
-            Model[priorState] = new Dictionary<int, (float, int)>();
+            Model[priorState] = new Dictionary<int, (float, Vector2Int)>();
         }
         Model[priorState][a] = (r,s);
         //     if done:
@@ -190,50 +190,8 @@ public class DyanSimpleAgent : Agent
             Q[s1][a1] += delta;
         }
     }
-    // float GetIndex(Vector4 vector4, int idx)
-    // {
-    //     switch (idx)
-    //     {
-    //         case 0:
-    //             return vector4.x;
-    //         case 1:
-    //             return vector4.y;
-    //         case 2:
-    //             return vector4.z;
-    //         case 3:
-    //             return vector4.w;
-    //         default:
-    //             throw new System.ArgumentException();
-    //     }
-    // }
-    // Vector4 SetIndex(Vector4 vector4, int idx, float value)
-    // {
-    //     switch (idx)
-    //     {
-    //         case 0:
-    //             vector4.x = value;
-    //             break;
-    //         case 1:
-    //             vector4.y = value;
-    //             break;
-    //         case 2:
-    //             vector4.z = value;
-    //             break;
-    //         case 3:
-    //             vector4.w = value;
-    //             break;
-    //         default:
-    //             throw new System.ArgumentException();
-    //     }
-    //     return vector4;
-    // }
-    // Vector4 AddToIndex(Vector4 vector4, int idx, float delta)
-    // {
-    //     float curValue = GetIndex(vector4, idx);
-    //     float value = curValue + delta;
-    //     return SetIndex(vector4, idx, value);
-    // }
-    int SampleAction(int state)
+
+    int SampleAction(Vector2Int state)
     {
         if (Random.value < 0.1f)
         {
@@ -270,53 +228,4 @@ public class DyanSimpleAgent : Agent
         return values[idx];
     }
 
-
-    // int Argmax(Vector4 value)
-    // {
-    //     var indexs = new List<int>{0};
-    //     var max = value.x;
-    //     // 1
-    //     if (value.y == max)
-    //         indexs.Add(1);
-    //     else if (value.y > max)
-    //     {
-    //         indexs = new List<int>{1};
-    //         max = value.y;
-    //     }
-    //     // 2
-    //     if (value.z == max)
-    //         indexs.Add(2);
-    //     else if (value.z > max)
-    //     {
-    //         indexs = new List<int>{2};
-    //         max = value.z;
-    //     }
-    //     // 3
-    //     if (value.w == max)
-    //         indexs.Add(3);
-    //     else if (value.w > max)
-    //     {
-    //         indexs = new List<int>{3};
-    //         max = value.w;
-    //     }
-    //     var idx = Random.Range (0, indexs.Count);
-    //     return indexs[idx];
-    // }
-    // float Max(Vector4 vector4)
-    // {
-    //     int idx = Argmax(vector4);
-    //     switch (idx)
-    //     {
-    //         case 0:
-    //             return vector4.x;
-    //         case 1:
-    //             return vector4.y;
-    //         case 2:
-    //             return vector4.z;
-    //         case 3:
-    //             return vector4.w;
-    //         default:
-    //             throw new System.ArgumentException();
-    //     }
-    // }
 }
