@@ -107,15 +107,15 @@ public class Environment
                     TryMovePlayer(targetPos);
                     CheckDone();
                 break;
-            // case 2: // Right
-            case Environment.Actions.Right:
+            // case 3: // Down
+            case Environment.Actions.Down:
                if (States[PlayerIdx].Position.y < BoardHeight-1)
                     targetPos.y += 1;
                     TryMovePlayer(targetPos);
                     CheckDone();
                 break;
-            //  case 3: // Down
-            case Environment.Actions.Down:
+            // case 2: // Right
+            case Environment.Actions.Right:
                if (States[PlayerIdx].Position.x < BoardWidth-1)
                     targetPos.x += 1;
                     TryMovePlayer(targetPos);

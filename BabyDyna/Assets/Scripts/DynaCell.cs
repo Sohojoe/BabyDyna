@@ -13,6 +13,15 @@ public class DynaCell : MonoBehaviour
 
     [Tooltip("Debug Background")]
     public MeshRenderer DebugBackground;
+    [Tooltip("Debug Up")]
+    public GameObject DebugUp;
+    [Tooltip("Debug Down")]
+    public GameObject DebugDown;
+    [Tooltip("Debug Left")]
+    public GameObject DebugLeft;
+    [Tooltip("Debug Right")]
+    public GameObject DebugRight;
+
 
 
     [Tooltip("State of this cell (0=free, 1=rock, 2=goal, 3=hero)")]
@@ -85,9 +94,14 @@ public class DynaCell : MonoBehaviour
                 break;
         }
         var maxQ = Mathf.Max(QUp, QDown, QLeft, QRight);
+        SetDebugArrows(maxQ);
+        SetDebugBackground(maxQ);
         _maxQ = Mathf.Max(_maxQ, maxQ);
         MaxQ = _maxQ;
+    }
 
+    void SetDebugBackground(float maxQ)
+    {
         Color color;
         if (maxQ > 0f)
         {
@@ -103,5 +117,41 @@ public class DynaCell : MonoBehaviour
             color.a = maxQ;
             DebugBackground.material.color = color;
         }
+    }
+    void SetDebugArrows(float maxQ)
+    {
+        bool setUp = false;
+        bool setDown = false;
+        bool setLeft = false;
+        bool setRight = false;
+
+        if (Mathf.Approximately(maxQ, QUp))
+            setUp = true;
+        if (Mathf.Approximately(maxQ, QDown))
+            setDown = true;
+        if (Mathf.Approximately(maxQ, QLeft))
+            setLeft = true;
+        if (Mathf.Approximately(maxQ, QRight))
+            setRight = true;
+
+        if (setUp && !DebugUp.activeInHierarchy)
+            DebugUp.SetActive(true);
+        else if (!setUp && DebugUp.activeInHierarchy)
+            DebugUp.SetActive(false);
+
+        if (setDown && !DebugDown.activeInHierarchy)
+            DebugDown.SetActive(true);
+        else if (!setDown && DebugDown.activeInHierarchy)
+            DebugDown.SetActive(false);
+
+        if (setLeft && !DebugLeft.activeInHierarchy)
+            DebugLeft.SetActive(true);
+        else if (!setLeft && DebugLeft.activeInHierarchy)
+            DebugLeft.SetActive(false);
+            
+        if (setRight && !DebugRight.activeInHierarchy)
+            DebugRight.SetActive(true);
+        else if (!setRight && DebugRight.activeInHierarchy)
+            DebugRight.SetActive(false);
     }
 }
