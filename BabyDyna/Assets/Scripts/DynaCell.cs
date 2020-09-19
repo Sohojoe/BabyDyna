@@ -11,6 +11,10 @@ public class DynaCell : MonoBehaviour
     [Tooltip("Rock Prefab")]
     public GameObject DynaRock;
 
+    [Tooltip("Debug Background")]
+    public MeshRenderer DebugBackground;
+
+
     [Tooltip("State of this cell (0=free, 1=rock, 2=goal, 3=hero)")]
     public int State;
     [Tooltip("State of this cell (Text)")]
@@ -25,6 +29,10 @@ public class DynaCell : MonoBehaviour
     public float QRight;
     public float QDown;
     public float QLeft;
+
+    static float _maxQ;
+    public float MaxQ;
+
 
 
     // Start is called before the first frame update
@@ -75,6 +83,25 @@ public class DynaCell : MonoBehaviour
                     DynaRock.SetActive(false);
                 StateText = "free";
                 break;
+        }
+        var maxQ = Mathf.Max(QUp, QDown, QLeft, QRight);
+        _maxQ = Mathf.Max(_maxQ, maxQ);
+        MaxQ = _maxQ;
+
+        Color color;
+        if (maxQ > 0f)
+        {
+            maxQ = Mathf.Min(maxQ, 1f);
+            color = Color.green;
+            color.a = maxQ;
+            DebugBackground.material.color = color;
+        }
+        else
+        {
+            maxQ = Mathf.Min(-maxQ, 1f);
+            color = Color.red;
+            color.a = maxQ;
+            DebugBackground.material.color = color;
         }
     }
 }
