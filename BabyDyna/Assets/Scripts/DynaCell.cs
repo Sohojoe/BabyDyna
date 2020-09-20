@@ -102,8 +102,14 @@ public class DynaCell : MonoBehaviour
 
     void SetDebugBackground(float maxQ)
     {
-        Color color;
-        if (maxQ > 0f)
+        Color color = new Color(0f,0f,0f,0f);
+        if (DynaRock.activeInHierarchy)
+        {
+            DebugBackground.material.color = color;
+            return;
+        }
+
+        if (maxQ >= 0f)
         {
             maxQ = Mathf.Min(maxQ, 1f);
             color = Color.green;
@@ -125,14 +131,17 @@ public class DynaCell : MonoBehaviour
         bool setLeft = false;
         bool setRight = false;
 
-        if (Mathf.Approximately(maxQ, QUp))
-            setUp = true;
-        if (Mathf.Approximately(maxQ, QDown))
-            setDown = true;
-        if (Mathf.Approximately(maxQ, QLeft))
-            setLeft = true;
-        if (Mathf.Approximately(maxQ, QRight))
-            setRight = true;
+        if (!DynaRock.activeInHierarchy)
+        {
+            if (Mathf.Approximately(maxQ, QUp))
+                setUp = true;
+            if (Mathf.Approximately(maxQ, QDown))
+                setDown = true;
+            if (Mathf.Approximately(maxQ, QLeft))
+                setLeft = true;
+            if (Mathf.Approximately(maxQ, QRight))
+                setRight = true;
+        }
 
         if (setUp && !DebugUp.activeInHierarchy)
             DebugUp.SetActive(true);
@@ -148,7 +157,7 @@ public class DynaCell : MonoBehaviour
             DebugLeft.SetActive(true);
         else if (!setLeft && DebugLeft.activeInHierarchy)
             DebugLeft.SetActive(false);
-            
+
         if (setRight && !DebugRight.activeInHierarchy)
             DebugRight.SetActive(true);
         else if (!setRight && DebugRight.activeInHierarchy)

@@ -84,10 +84,19 @@ public class DyanSimpleAgent : Agent
         foreach (var item in _env.States)
         {
             Q[item.Position] = new Dictionary<int, float>();
-            Q[item.Position][0] = UnityEngine.Random.value * -.01f;
-            Q[item.Position][1] = UnityEngine.Random.value * -.01f;
-            Q[item.Position][2] = UnityEngine.Random.value * -.01f;
-            Q[item.Position][3] = UnityEngine.Random.value * -.01f;
+            // Q[item.Position][0] = -1f + (UnityEngine.Random.value * -.01f);
+            // Q[item.Position][1] = -1f + (UnityEngine.Random.value * -.01f);
+            // Q[item.Position][2] = -1f + (UnityEngine.Random.value * -.01f);
+            // Q[item.Position][3] = -1f + (UnityEngine.Random.value * -.01f);
+            // Q[item.Position][0] = (UnityEngine.Random.value * -.01f);
+            // Q[item.Position][1] = (UnityEngine.Random.value * -.01f);
+            // Q[item.Position][2] = (UnityEngine.Random.value * -.01f);
+            // Q[item.Position][3] = (UnityEngine.Random.value * -.01f);
+            Q[item.Position][0] = 0f;
+            Q[item.Position][1] = 0f;
+            Q[item.Position][2] = 0f;
+            Q[item.Position][3] = 0f;
+
             Model[item.Position] = new Dictionary<int, (float, Vector2Int)>();
             Model[item.Position][(int)Environment.Actions.Up] = (0f, item.Position);
             Model[item.Position][(int)Environment.Actions.Down] = (0f, item.Position);
@@ -156,7 +165,6 @@ public class DyanSimpleAgent : Agent
         float r;
         bool done;
         (s, r, done) = _env.Step(a);
-        _gameBoard.RenderBoard(_env);
         TotalReward += r;
         //     self.Q[p_s][a] += alpha * (r + (gamma * np.max(self.Q[s])) - self.Q[p_s][a])
         float delta = Alpha * (r + (Gamma * Max(Q[s])) - Q[priorState][a]);
@@ -199,6 +207,7 @@ public class DyanSimpleAgent : Agent
             delta = Alpha * (r1 + (Gamma * Max(Q[s_p1])) - Q[s1][a1]);
             Q[s1][a1] += delta;
         }
+        _gameBoard.RenderBoard(_env);
         _gameBoard.RenderModel(Model);
         _gameBoard.RenderQ(Q);
     }
