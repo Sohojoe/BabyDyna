@@ -10,11 +10,18 @@ public class DynaGameBoard : MonoBehaviour
 
     List<DynaCell> _cells;
 
+    public bool _holdingGoal;
+    public bool _holdingRock;
+    public Vector2Int _lastHoldPosition;
+    public Vector2Int _initialHoldPosition;
+    DyanSimpleAgent _agent;
 
     bool _hasInitializedBoard;
     // Start is called before the first frame update
     void Start()
     {
+        var parent = this.transform.parent;
+        _agent = parent.GetComponentInChildren<DyanSimpleAgent>();
     }
 
     // Update is called once per frame
@@ -55,6 +62,9 @@ public class DynaGameBoard : MonoBehaviour
             position.x -= (float)_env.BoardWidth;
             position.z -= 1f;
         }
+        _holdingGoal = false;
+        _holdingRock = false;
+        _lastHoldPosition = new Vector2Int(-1,-1);
         RenderBoard(_env);
         RenderModel();
         RenderQ();
@@ -157,103 +167,6 @@ public class DynaGameBoard : MonoBehaviour
         return freeSpaces;
     }
 
-
-    // public void TakeAction(int action, int playerId)
-    // {
-    //     var cell = _cells.First(x=>x.Action == action);
-    //     cell.TeamId = playerId;
-    //     _nextPlayerId = playerId == 1 ? 2 : 1;
-    //     // UpdateScore(action);
-    // }
-
-    // void UpdateScore(int action)
-    // {
-    //     LastHorizontal = new List<int>();
-    //     LastVertical = new List<int>();
-    //     LastLeftToRight = new List<int>();
-    //     LastRightToLeft = new List<int>();
-    //     Cell cell = _cells.First(x=>x.Action == action);
-    //     int row = cell.Row;
-    //     int col = cell.Column;
-    //     LastRow = cell.Row;
-    //     LastColumn = cell.Column;
-    //     LastTeamId = cell.TeamId;
-    //     int offset = _cells.First(x=>x.Row == row && x.Column == 0).Action;
-    //     for (int i = 0; i < Size; i++)
-    //     {
-    //         int idx = offset+i;
-    //         cell = _cells[idx];
-    //         LastHorizontal.Add(cell.TeamId);
-    //     }
-    //     offset = _cells.First(x=>x.Row == 0 && x.Column == col).Action;
-    //     for (int i = 0; i < Size; i++)
-    //     {
-    //         int idx = offset+(i*Size);
-    //         cell = _cells[idx];
-    //         LastVertical.Add(cell.TeamId);
-    //     }
-    //     int neg = row < col ? row : col;
-    //     offset = _cells.First(x=>x.Row == row-neg && x.Column == col-neg).Action;
-    //     for (int i = 0; i < Size; i++)
-    //     {
-    //         if (col-neg + i >= Size)
-    //             break;
-    //         int idx = offset + i + (i*Size);
-    //         if (idx >= _cells.Count)
-    //             break;
-    //         if (idx < 0)
-    //             continue;
-    //         cell = _cells[idx];
-    //         LastLeftToRight.Add(cell.TeamId);
-    //     }
-    //     var negCol = Size-1-col;
-    //     var offsetA = row > negCol ? negCol : row;
-    //     offset = _cells.First(x=>x.Row == row-offsetA && x.Column == col+offsetA).Action;
-    //     for (int i = 0; i < Size; i++)
-    //     {
-    //         if ((col+offsetA) - i < 0)
-    //             break;
-    //         int idx = offset - i;
-    //         idx += i*Size;
-    //         if (idx >= _cells.Count)
-    //             break;
-    //         if (idx < 0)
-    //             continue;
-    //         cell = _cells[idx];
-    //         LastRightToLeft.Add(cell.TeamId);
-    //     }
-    //     string lastHorizontalStr = string.Join("", LastHorizontal);
-    //     string lastVerticalStr = string.Join("", LastVertical);
-    //     string lastLeftToRightStr = string.Join("", LastLeftToRight);
-    //     string lastRightToLeftStr = string.Join("", LastRightToLeft);
-    //     foreach (var i in Enumerable.Range(0,Size))
-    //     {
-    //         var score = Size-i;
-    //         if (score > BestScoreTeamId1)
-    //         {
-    //             var target = string.Join("", Enumerable.Range(0,score).Select(x=>1));
-    //             bool newHighScore = 
-    //                 lastHorizontalStr.Contains(target)
-    //                 | lastVerticalStr.Contains(target)
-    //                 | lastLeftToRightStr.Contains(target)
-    //                 | lastRightToLeftStr.Contains(target);
-    //             if (newHighScore)
-    //                 BestScoreTeamId1 = score;
-    //         }
-    //         if (score > BestScoreTeamId2)
-    //         {
-    //             var target = string.Join("", Enumerable.Range(0,score).Select(x=>2));
-    //             bool newHighScore = 
-    //                 lastHorizontalStr.Contains(target)
-    //                 | lastVerticalStr.Contains(target)
-    //                 | lastLeftToRightStr.Contains(target)
-    //                 | lastRightToLeftStr.Contains(target);
-    //             if (newHighScore)
-    //                 BestScoreTeamId2 = score;
-    //         }
-    //     }
-    // }
-
     public bool HasEnded()
     {
         // var freeSpace = _cells.FirstOrDefault(x=>x.TeamId == 0);
@@ -268,4 +181,57 @@ public class DynaGameBoard : MonoBehaviour
             return false;
         return true;
     }
+    public void CellOnMouseUpAsButton(Vector2Int position)
+    {
+        if (_holdingGoal)
+        {
+            return;
+        }
+        _agent.TryTogglePosition(position);
+    }
+    public void OnMouseDown(Vector2Int position, int state)
+    {
+        _holdingRock = false;
+        _holdingGoal = false;
+        _initialHoldPosition = position;
+        _lastHoldPosition = position;
+        // (0=free, 1=rock, 2=goal, 3=hero)
+        if (state == 1) // rock
+        {
+            _holdingRock = true;
+        }
+        else if (state == 2) // goal
+        {
+            _holdingGoal = true;
+        }
+    }
+    public void OnMouseDrag(Vector2Int position, int state)
+    {
+        if (position == _lastHoldPosition)
+            return;
+        if (_holdingGoal)
+        {
+            // (0=free, 1=rock, 2=goal, 3=hero)
+            if (state == 0 || state == 1)
+            {
+                _agent.MoveGoal(position, _lastHoldPosition);
+                _lastHoldPosition = position;
+            }
+        }
+        
+        if (_holdingRock)
+        {
+            // (0=free, 1=rock, 2=goal, 3=hero)
+            if (state == 0)
+            {
+                _agent.MoveRock(position, _lastHoldPosition);
+                _lastHoldPosition = position;
+            }
+        }
+    }        
+    public void OnMouseUp(Vector2Int position)
+    {
+        _holdingRock = false;
+        _holdingGoal = false;
+    }    
 }

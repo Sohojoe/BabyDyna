@@ -66,6 +66,28 @@ MonoBehaviour:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
   MaxStep: 0
+  BoardWidth: 9
+  BoardHeight: 6
+  NumEpisodes: 50
+  Alpha: 0.5
+  Gamma: 0.95
+  EvalEpochs: 100
+  StepSize: 34
+  InitialRockPositions:
+  - {x: 2, y: 1}
+  - {x: 2, y: 2}
+  - {x: 2, y: 3}
+  - {x: 7, y: 0}
+  - {x: 7, y: 1}
+  - {x: 7, y: 2}
+  - {x: 5, y: 4}
+  InitialHeroPosition: {x: 0, y: 2}
+  InitialGoalPosition: {x: 8, y: 0}
+  EpochsLeft: 0
+  TotalReward: 0
+  EpisodeNum: 0
+  RunningAverage: []
+  StateMemory: []
 --- !u!1001 &2263640177507525044
 PrefabInstance:
   m_ObjectHideFlags: 0

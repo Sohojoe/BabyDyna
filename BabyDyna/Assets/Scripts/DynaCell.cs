@@ -22,6 +22,14 @@ public class DynaCell : MonoBehaviour
     [Tooltip("Debug Right")]
     public GameObject DebugRight;
 
+    [Tooltip("Highlight Left")]
+    public MeshRenderer HighlightLeft;
+    [Tooltip("Highlight Right")]
+    public MeshRenderer HighlightRight;
+    [Tooltip("Highlight Up")]
+    public MeshRenderer HighlightUp;
+    [Tooltip("Highlight Down")]
+    public MeshRenderer HighlightDown;
 
 
     [Tooltip("State of this cell (0=free, 1=rock, 2=goal, 3=hero)")]
@@ -42,12 +50,19 @@ public class DynaCell : MonoBehaviour
     static float _maxQ;
     public float MaxQ;
 
+    Color _highlightLeftColor;
+    Color _highlightRightColor;
+    Color _highlightUpColor;
+    Color _highlightDownColor;
+    bool _isHighlighted;
+
+    DynaGameBoard _dynaGameBoard;
 
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        _dynaGameBoard = this.GetComponentInParent<DynaGameBoard>();
     }
 
     // Update is called once per frame
@@ -98,6 +113,47 @@ public class DynaCell : MonoBehaviour
         SetDebugBackground(maxQ);
         _maxQ = Mathf.Max(_maxQ, maxQ);
         MaxQ = _maxQ;
+    }
+
+    void OnMouseEnter()
+    {
+        if (_isHighlighted)
+            return;
+        _highlightLeftColor = HighlightLeft.material.color;
+        _highlightRightColor = HighlightRight.material.color;
+        _highlightUpColor = HighlightUp.material.color;
+        _highlightDownColor = HighlightDown.material.color;
+        Color color = Color.white;
+        HighlightLeft.material.color = color;
+        HighlightRight.material.color = color;
+        HighlightUp.material.color = color;
+        HighlightDown.material.color = color;
+        _isHighlighted = true;
+    }
+    void OnMouseExit()
+    {
+        HighlightLeft.material.color = _highlightLeftColor;
+        HighlightRight.material.color = _highlightRightColor;
+        HighlightUp.material.color = _highlightUpColor;
+        HighlightDown.material.color = _highlightDownColor;
+        _isHighlighted = false;
+    }
+    void OnMouseUpAsButton()
+    {
+        _dynaGameBoard.CellOnMouseUpAsButton(Position);
+    }
+    void OnMouseDown()
+    {
+        _dynaGameBoard.OnMouseDown(Position, State);
+    }
+    // void OnMouseDrag()
+    void OnMouseOver()
+    {
+        _dynaGameBoard.OnMouseDrag(Position, State);
+    }
+    void OnMouseUp()
+    {
+        _dynaGameBoard.OnMouseUp(Position);
     }
 
     void SetDebugBackground(float maxQ)

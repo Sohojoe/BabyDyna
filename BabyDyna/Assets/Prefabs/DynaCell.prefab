@@ -1319,6 +1319,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7547941941079494172}
   - component: {fileID: 1481362451755307785}
+  - component: {fileID: 2006808769287371249}
   m_Layer: 0
   m_Name: DynaCell
   m_TagString: Untagged
@@ -1372,6 +1373,10 @@ MonoBehaviour:
   DebugDown: {fileID: 5997804462890924839}
   DebugLeft: {fileID: 7312248652606451957}
   DebugRight: {fileID: 8058760032318079697}
+  HighlightLeft: {fileID: 7547941941043748544}
+  HighlightRight: {fileID: 5242712061963843856}
+  HighlightUp: {fileID: 7547941940009532844}
+  HighlightDown: {fileID: 3405745881225198785}
   State: 0
   StateText: 
   Position: {x: 0, y: 0}
@@ -1384,6 +1389,19 @@ MonoBehaviour:
   QDown: 0
   QLeft: 0
   MaxQ: 0
+--- !u!65 &2006808769287371249
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7547941941079494175}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &7558085389152426138
 GameObject:
   m_ObjectHideFlags: 0
@@ -1930,15 +1948,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 79139b5ed60404049ac1c0c237823883, type: 3}
---- !u!1 &6017772124292468039 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3434031475278771100, guid: 79139b5ed60404049ac1c0c237823883,
-    type: 3}
-  m_PrefabInstance: {fileID: 8947327220451589851}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &8275613806827529486 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1077389844641405909, guid: 79139b5ed60404049ac1c0c237823883,
+    type: 3}
+  m_PrefabInstance: {fileID: 8947327220451589851}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &6017772124292468039 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3434031475278771100, guid: 79139b5ed60404049ac1c0c237823883,
     type: 3}
   m_PrefabInstance: {fileID: 8947327220451589851}
   m_PrefabAsset: {fileID: 0}

@@ -17,10 +17,10 @@ public class DyanSimpleAgent : Agent
     public int BoardHeight = 6;
 
     public int NumEpisodes = 50;
-    public float Alpha = 0.1f;
+    public float Alpha = 0.2f;
     public float Gamma = 0.95f;
     public int EvalEpochs = 100;
-
+    public int StepSize = 20;
 
     public List<Vector2Int> InitialRockPositions = new List<Vector2Int>{
         new Vector2Int(2,1),
@@ -42,6 +42,8 @@ public class DyanSimpleAgent : Agent
 
     
     [Header("State")]
+    public int EpochsLeft;
+
     public Dictionary<Vector2Int, Dictionary<int, float>> Q;
     public Dictionary<Vector2Int, Dictionary<int, (float, Vector2Int)>> Model;
     public float TotalReward;
@@ -80,7 +82,6 @@ public class DyanSimpleAgent : Agent
         );
 
         Q = new Dictionary<Vector2Int, Dictionary<int, float>>();
-        Model = new Dictionary<Vector2Int, Dictionary<int, (float, Vector2Int)>>();
         foreach (var item in _env.States)
         {
             Q[item.Position] = new Dictionary<int, float>();
@@ -88,28 +89,60 @@ public class DyanSimpleAgent : Agent
             // Q[item.Position][1] = -1f + (UnityEngine.Random.value * -.01f);
             // Q[item.Position][2] = -1f + (UnityEngine.Random.value * -.01f);
             // Q[item.Position][3] = -1f + (UnityEngine.Random.value * -.01f);
-            // Q[item.Position][0] = (UnityEngine.Random.value * -.01f);
-            // Q[item.Position][1] = (UnityEngine.Random.value * -.01f);
-            // Q[item.Position][2] = (UnityEngine.Random.value * -.01f);
-            // Q[item.Position][3] = (UnityEngine.Random.value * -.01f);
+            // Q[item.Position][0] = (UnityEngine.Random.value * .01f);
+            // Q[item.Position][1] = (UnityEngine.Random.value * .01f);
+            // Q[item.Position][2] = (UnityEngine.Random.value * .01f);
+            // Q[item.Position][3] = (UnityEngine.Random.value * .01f);
             Q[item.Position][0] = 0f;
             Q[item.Position][1] = 0f;
             Q[item.Position][2] = 0f;
             Q[item.Position][3] = 0f;
+        }
 
+        _gameBoard.InitializeBoard(_env);
+        TotalReward = 0;
+        EpisodeNum = 0;
+        EpochsLeft = 0;
+        RunningAverage = new List<float>();
+        ResetModel();
+    }
+    void ResetModel()
+    {
+        Model = new Dictionary<Vector2Int, Dictionary<int, (float, Vector2Int)>>();
+        foreach (var item in _env.States)
+        {
             Model[item.Position] = new Dictionary<int, (float, Vector2Int)>();
             Model[item.Position][(int)Environment.Actions.Up] = (0f, item.Position);
             Model[item.Position][(int)Environment.Actions.Down] = (0f, item.Position);
             Model[item.Position][(int)Environment.Actions.Left] = (0f, item.Position);
             Model[item.Position][(int)Environment.Actions.Right] = (0f, item.Position);
         }
-
-        _gameBoard.InitializeBoard(_env);
-        TotalReward = 0;
-        EpisodeNum = 0;
-        RunningAverage = new List<float>();
         StateMemory = new List<Vector2Int>();
         ActionMemory = new Dictionary<Vector2Int, List<int>>();
+        foreach (var item in _env.States)
+        {
+            StateMemory.Add(item.Position);
+            ActionMemory[item.Position] = new List<int>();
+            ActionMemory[item.Position].Add((int)Environment.Actions.Up);
+            ActionMemory[item.Position].Add((int)Environment.Actions.Down);
+            ActionMemory[item.Position].Add((int)Environment.Actions.Left);
+            ActionMemory[item.Position].Add((int)Environment.Actions.Right);
+        }
+    }
+    void ResetModelValues()
+    {
+        foreach (var item in _env.States)
+        {
+            var oldModel = new Dictionary<int, (float, Vector2Int)>();
+            foreach (var kv in Model[item.Position])
+            {
+                oldModel[kv.Key] = kv.Value;
+            }
+            foreach (var key in oldModel.Keys)
+            {
+                Model[item.Position][key] = (0f, oldModel[key].Item2);
+            }
+        }
     }
 
     override public void CollectObservations(VectorSensor sensor)
@@ -144,8 +177,53 @@ public class DyanSimpleAgent : Agent
         // actionsOut[0] = (float)action;
         TakeStep();
     }
+    public void TryTogglePosition(Vector2Int position)
+    {
+        State s = _env.States.First(x=>x.Position == position);
+        if (s.IsGoal)
+            return;
+        s.IsRock = !s.IsRock;
+        // ResetModelValues();
+    }
+    public void MoveGoal(Vector2Int position, Vector2Int lastPosition)
+    {
+        State lastS = _env.States.First(x=>x.Position == lastPosition);
+        State s = _env.States.First(x=>x.Position == position);
+        if (!lastS.IsGoal)
+            return;
+        if (s.IsGoal)
+            return;
+        lastS.IsGoal = false;
+        var goalReward = lastS.Reward;
+        lastS.Reward = s.Reward;
+        s.IsGoal = true;
+        s.Reward = goalReward;
+        // ResetModelValues();
+    }
+    public void MoveRock(Vector2Int position, Vector2Int lastPosition)
+    {
+        State lastS = _env.States.First(x=>x.Position == lastPosition);
+        State s = _env.States.First(x=>x.Position == position);
+        if (!lastS.IsRock)
+            return;
+        if (s.IsRock || s.IsGoal)
+            return;
+        lastS.IsRock = false;
+        s.IsRock = true;
+        // ResetModelValues();
+    }
 
     void TakeStep()
+    {
+        if(EpochsLeft <= 0)
+        {
+            Move();
+            EpochsLeft = EvalEpochs;
+        }
+        TrainFor(StepSize);
+        EpochsLeft -= StepSize;
+    }
+    void Move()
     {
         var s = _env.PlayerPos;
         var a = SampleAction(s);
@@ -175,14 +253,6 @@ public class DyanSimpleAgent : Agent
             Model[priorState] = new Dictionary<int, (float, Vector2Int)>();
         }
         Model[priorState][a] = (r,s);
-        //     if done:
-        //         s = env.reset()
-        //         env.clear()
-        //         episode_num += 1
-        //         # print("Attained total reward at {}th episode: {}".format(episode_num, total_reward))
-        //         # sleep(1.5)
-        //         running_average.append(total_reward)
-        //         total_reward = 0
         if (done)
         {
             s = _env.Reset();
@@ -191,20 +261,18 @@ public class DyanSimpleAgent : Agent
             RunningAverage.Add(TotalReward);
             TotalReward = 0f;
         }
-        //     for n in range(eval_epochs):
-        //         s1 = np.random.choice(StateMemory)
-        //         a1 = np.random.choice(ActionMemory[s1])
-        //         r1, s_p1 = self.model[s1][a1]
-        //         self.Q[s1][a1] += alpha * (r1 + (gamma * np.max(self.Q[s_p1])) - self.Q[s1][a1])
-        // return running_average
-        for (int i = 0; i < EvalEpochs; i++)
+        return;
+    }
+    void TrainFor(int epochs)
+    {
+        for (int i = 0; i < epochs; i++)
         {
             var s1Idx = Random.Range(0, StateMemory.Count);
             var s1 = StateMemory[s1Idx];
             var a1Idx = Random.Range(0, ActionMemory[s1].Count);
             int a1 = ActionMemory[s1][a1Idx];
             (var r1, var s_p1) = Model[s1][a1];
-            delta = Alpha * (r1 + (Gamma * Max(Q[s_p1])) - Q[s1][a1]);
+            var delta = Alpha * (r1 + (Gamma * Max(Q[s_p1])) - Q[s1][a1]);
             Q[s1][a1] += delta;
         }
         _gameBoard.RenderBoard(_env);

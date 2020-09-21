@@ -57,35 +57,47 @@ public class Environment
     public Vector2Int Reset()
     {
         IsDone = false;
-        States = new List<State>();
-        PlayerPos = _initialHeroPosition;
         int id=0;
-        for (int y = 0; y < BoardHeight; y++)
+        if (States == null)
         {
-            for (int x = 0; x < BoardWidth; x++)
+            States = new List<State>();
+            for (int y = 0; y < BoardHeight; y++)
             {
-                var state = new State{
-                    Id = id++,
-                    Position = new Vector2Int(x,y),
-                    Reward = -0.01f,
-                };
-                if (_initialRockPositions.Contains(state.Position))
+                for (int x = 0; x < BoardWidth; x++)
                 {
-                    state.IsRock = true;
-                }
-                if (state.Position == _initialGoalPosition)
-                {
-                    state.IsGoal = true;
-                    state.Reward = 1f;
-                }
-                if (state.Position == _initialHeroPosition)
-                {
-                    state.IsHero = true;
-                }
-                States.Add(state);
-            }                
+                    var state = new State{
+                        Id = id++,
+                        Position = new Vector2Int(x,y),
+                        Reward = -0.001f,
+                        // Reward = -0.0f,
+                    };
+                    if (_initialRockPositions.Contains(state.Position))
+                    {
+                        state.IsRock = true;
+                    }
+                    if (state.Position == _initialGoalPosition)
+                    {
+                        state.IsGoal = true;
+                        state.Reward = 1f;
+                    }
+                    if (state.Position == _initialHeroPosition)
+                    {
+                        state.IsHero = true;
+                    }
+                    States.Add(state);
+                }                
+            }
+        }
+        else
+        {
+            // reset player position
+            var curState = States.First(x=>x.IsHero);
+            curState.IsHero = false;
+            var resetState = States.First(x=>x.Position == _initialHeroPosition);
+            resetState.IsHero = true;
         }
         PlayerIdx = States.First(x=>x.IsHero).Id;
+        PlayerPos = States.First(x=>x.IsHero).Position;
         return PlayerPos;
     }
     public (Vector2Int, float, bool) Step(int action)
