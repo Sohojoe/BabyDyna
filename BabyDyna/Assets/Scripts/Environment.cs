@@ -68,7 +68,7 @@ public class Environment
                     var state = new State{
                         Id = id++,
                         Position = new Vector2Int(x,y),
-                        Reward = -0.001f,
+                        Reward = -0.01f,
                         // Reward = -0.0f,
                     };
                     if (_initialRockPositions.Contains(state.Position))
