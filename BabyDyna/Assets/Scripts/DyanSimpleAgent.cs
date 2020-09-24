@@ -246,7 +246,12 @@ public class DyanSimpleAgent : Agent
         TotalReward += r;
         //     self.Q[p_s][a] += alpha * (r + (gamma * np.max(self.Q[s])) - self.Q[p_s][a])
         float delta = Alpha * (r + (Gamma * Max(Q[s])) - Q[priorState][a]);
-        Q[priorState][a] += delta;
+        // Q[priorState][a] += delta;
+        var newQ = Q[priorState][a] + delta;
+        var clippedQ = Mathf.Min(newQ, 1f);
+        clippedQ = Mathf.Max(clippedQ, -1f);
+        Q[priorState][a] = clippedQ;
+
         //     self.model[p_s][a] = (r, s)
         if (!Model.ContainsKey(priorState))
         {
@@ -267,13 +272,20 @@ public class DyanSimpleAgent : Agent
     {
         for (int i = 0; i < epochs; i++)
         {
-            var s1Idx = Random.Range(0, StateMemory.Count);
-            var s1 = StateMemory[s1Idx];
-            var a1Idx = Random.Range(0, ActionMemory[s1].Count);
-            int a1 = ActionMemory[s1][a1Idx];
-            (var r1, var s_p1) = Model[s1][a1];
-            var delta = Alpha * (r1 + (Gamma * Max(Q[s_p1])) - Q[s1][a1]);
-            Q[s1][a1] += delta;
+            var sIdx = Random.Range(0, StateMemory.Count);
+            var s = StateMemory[sIdx];
+            var aIdx = Random.Range(0, ActionMemory[s].Count);
+            int a = ActionMemory[s][aIdx];
+            (var r, var s_p) = Model[s][a];
+            var delta = Alpha * (r + (Gamma * Max(Q[s_p])) - Q[s][a]);
+            var newQ = Q[s][a] + delta;
+            var clippedQ = Mathf.Min(newQ, 1f);
+            clippedQ = Mathf.Max(clippedQ, -1f);
+            Q[s][a] = clippedQ;
+            bool debug;
+            if (newQ > 1f)
+                debug = true;
+
         }
         _gameBoard.RenderBoard(_env);
         _gameBoard.RenderModel(Model);
