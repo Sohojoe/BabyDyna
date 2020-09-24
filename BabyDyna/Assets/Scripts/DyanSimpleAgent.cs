@@ -121,12 +121,12 @@ public class DyanSimpleAgent : Agent
         ActionMemory = new Dictionary<Vector2Int, List<int>>();
         foreach (var item in _env.States)
         {
-            StateMemory.Add(item.Position);
-            ActionMemory[item.Position] = new List<int>();
-            ActionMemory[item.Position].Add((int)Environment.Actions.Up);
-            ActionMemory[item.Position].Add((int)Environment.Actions.Down);
-            ActionMemory[item.Position].Add((int)Environment.Actions.Left);
-            ActionMemory[item.Position].Add((int)Environment.Actions.Right);
+            // StateMemory.Add(item.Position);
+            // ActionMemory[item.Position] = new List<int>();
+            // ActionMemory[item.Position].Add((int)Environment.Actions.Up);
+            // ActionMemory[item.Position].Add((int)Environment.Actions.Down);
+            // ActionMemory[item.Position].Add((int)Environment.Actions.Left);
+            // ActionMemory[item.Position].Add((int)Environment.Actions.Right);
         }
     }
     void ResetModelValues()
